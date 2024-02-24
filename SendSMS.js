@@ -23,7 +23,7 @@ async function SendReq() {
         const apiKey = process.env.EbulkSmsApi;
         const sender = 'RCCG COAs';
         const flash = '0'; // 0 for regular message, 1 for flash message
-        const recipients = '+2348138021900'; // Comma-separated recipient phone numbers
+        const recipients = '+2348138021900, +2347033411779'; // Comma-separated recipient phone numbers
 
         // Construct the URL for the eBulk SMS API
         const Api = `${baseURL}?username=${username}&apikey=${apiKey}&sender=${sender}&messagetext=${body, smsData}&flash=${flash}&recipients=${recipients}`;
