@@ -143,7 +143,7 @@ async function SendReq() {
 }
 
 // Schedule the task to run daily at 5:00 AM (your time zone)
-cron.schedule('* * * * *', SendReq, {
+cron.schedule('* 7 * * *', SendReq, {
     timezone: 'Africa/Lagos'
 });
 
