@@ -31,7 +31,7 @@ async function SendReq() {
         console.log(quote, smsData);
 
         // Send the GET request to the eBulk SMS API
-        const response = await axios.get(Api);
+        const response = await axios.get(Api); 
 
 
         // Handle the response from the eBulk SMS API
