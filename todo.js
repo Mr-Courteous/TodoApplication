@@ -40,7 +40,6 @@ axios.defaults.withCredentials = true;
 app.use('/tasks', Get);
 app.use('/users', Login);
 app.use(bodyParser.json());
-app.enable('trust proxy')
 
 
 
@@ -48,7 +47,7 @@ app.use(session({
     secret: 'your-secret-key',
     resave: false,
     saveUninitialized: false,
-    cookie: { secure: true, httpOnly: true }
+    cookie: { secure: true, httpsOnly: true, maxAge: 1000 * 60 * 60 * 48, sameSite: 'none' }
 
 }));
 
