@@ -31,7 +31,6 @@ app.use(cors({
     origin: ' https://todo-frontend-ten-phi.vercel.app', // Replace with your frontend domain
     methods: ["POST", "GET", "PUT", "DELETE"],
     credentials: true, // Allow credentials (cookies)
-    cookie: { secure: true, httpOnly: true }
 
 }));
 axios.defaults.withCredentials = true;
@@ -41,6 +40,8 @@ axios.defaults.withCredentials = true;
 app.use('/tasks', Get);
 app.use('/users', Login);
 app.use(bodyParser.json());
+app.enable('trust proxy')
+
 
 
 app.use(session({
@@ -50,6 +51,7 @@ app.use(session({
     cookie: { secure: true, httpOnly: true }
 
 }));
+
 
 
 
