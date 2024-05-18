@@ -96,6 +96,7 @@ router.post('/login', async (req, res) => {
         req.session.user = {
             userId: user._id,
             email: user.email,
+            username:user.username,
             // Add other user information to the session if needed
         };
 

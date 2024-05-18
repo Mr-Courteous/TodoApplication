@@ -28,7 +28,7 @@ app.use(express.json());
 // app.use(cors());
 
 app.use(cors({
-    origin: ' http://localhost:3000', // Replace with your frontend domain
+    origin: ' https://todo-frontend-ten-phi.vercel.app/', // Replace with your frontend domain
     methods: ["POST", "GET", "PUT", "DELETE"],
     credentials: true // Allow credentials (cookies)
 }));
@@ -143,8 +143,9 @@ async function SendReq() {
 }
 
 // Schedule the task to run daily at 5:00 AM (your time zone)
-cron.schedule('* 7 * * *', SendReq, {
-    timezone: 'Africa/Lagos'
+
+cron.schedule('0 7 * * *', SendReq, {
+  timezone: 'Africa/Lagos'
 });
 
 
