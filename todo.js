@@ -46,7 +46,9 @@ app.use(bodyParser.json());
 app.use(session({
     secret: 'your-secret-key',
     resave: false,
-    saveUninitialized: false
+    saveUninitialized: false,
+    cookie: { secure: true, httpOnly: true }
+
 }));
 
 
@@ -147,7 +149,7 @@ async function SendReq() {
 // Schedule the task to run daily at 5:00 AM (your time zone)
 
 cron.schedule('0 7 * * *', SendReq, {
-  timezone: 'Africa/Lagos'
+    timezone: 'Africa/Lagos'
 });
 
 
