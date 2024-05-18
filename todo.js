@@ -33,8 +33,6 @@ app.use(cors({
     credentials: true, // Allow credentials (cookies)
 
 }));
-axios.defaults.withCredentials = true;
-
 // app.use('/add-new-task', Add);
 
 app.use('/tasks', Get);
@@ -46,8 +44,8 @@ app.use(bodyParser.json());
 app.use(session({
     secret: 'your-secret-key',
     resave: false,
-    saveUninitialized: false,
-    cookie: { secure: true, httpsOnly: true, maxAge: 1000 * 60 * 60 * 48, sameSite: 'none' }
+    saveUninitialized: true,
+    cookie: { secure: true, httpsOnly: auto, maxAge: 1000 * 60 * 60 * 48, sameSite: 'None' }
 
 }));
 
