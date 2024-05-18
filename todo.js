@@ -30,7 +30,9 @@ app.use(express.json());
 app.use(cors({
     origin: ' https://todo-frontend-ten-phi.vercel.app', // Replace with your frontend domain
     methods: ["POST", "GET", "PUT", "DELETE"],
-    credentials: true // Allow credentials (cookies)
+    credentials: true, // Allow credentials (cookies)
+    cookie: { secure: true, httpOnly: true }
+
 }));
 axios.defaults.withCredentials = true;
 
