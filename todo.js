@@ -33,19 +33,27 @@ app.use(cors({
     credentials: true, // Allow credentials (cookies)
 
 }));
+
 // app.use('/add-new-task', Add);
 
 app.use('/tasks', Get);
 app.use('/users', Login);
 app.use(bodyParser.json());
+app.set("trust proxy", 1);
+
 
 
 
 app.use(session({
     secret: 'your-secret-key',
     resave: false,
-    saveUninitialized: true,
-    cookie: { secure: true, httpsOnly: auto, maxAge: 1000 * 60 * 60 * 48, sameSite: 'None' }
+    saveUninitialized: false,
+    cookie: {
+        secure: true,
+        httpsOnly: true,
+        sameSite: 'none',
+        maxAge: 1000 * 60 * 60 * 48,
+    }
 
 }));
 
