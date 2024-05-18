@@ -28,7 +28,7 @@ app.use(express.json());
 // app.use(cors());
 
 app.use(cors({
-    origin: ' https://todo-frontend-ten-phi.vercel.app/', // Replace with your frontend domain
+    origin: ' https://todo-frontend-ten-phi.vercel.app', // Replace with your frontend domain
     methods: ["POST", "GET", "PUT", "DELETE"],
     credentials: true // Allow credentials (cookies)
 }));
