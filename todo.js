@@ -32,7 +32,7 @@ app.use(express.json());
 // app.use(cors());
 
 app.use(cors({
-    origin: ' http://localhost:3000', // Replace with your frontend domain
+    origin: ['https://todo-frontend-ten-phi.vercel.app', ' http://localhost:3000'], // Replace with your frontend domain
     methods: ["POST", "GET", "PUT", "DELETE"],
     credentials: true, // Allow credentials (cookies)
 
