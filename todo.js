@@ -19,6 +19,10 @@ const User = require('./models/Users');
 
 
 
+
+
+
+
 const app = express();
 
 
@@ -28,12 +32,12 @@ app.use(express.json());
 // app.use(cors());
 
 app.use(cors({
-    origin: ' https://todo-frontend-ten-phi.vercel.app', // Replace with your frontend domain
+    origin: ' http://localhost:3000', // Replace with your frontend domain
     methods: ["POST", "GET", "PUT", "DELETE"],
     credentials: true, // Allow credentials (cookies)
 
 }));
-
+// https://todo-frontend-ten-phi.vercel.app',
 // app.use('/add-new-task', Add);
 
 app.use('/tasks', Get);

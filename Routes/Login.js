@@ -7,6 +7,8 @@ const User = require('../models/Users');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
+const jwt = require('jsonwebtoken');
+
 
 
 
@@ -71,51 +73,94 @@ router.post('/register', async (req, res) => {
 
 
 
-// Login route
+// Express session Login route
+// router.post('/login', async (req, res) => {
+//     const { email, password } = req.body;
+
+//     try {
+//         // Check if the user with the provided email exists
+//         const user = await User.findOne({ email });
+
+//         if (!user) {
+//             return res.status(401).json({ message: 'Invalid email or password' });
+//         }
+
+//         // Compare the provided password with the hashed password stored in the database
+//         const isPasswordValid = await bcrypt.compare(password, user.password);
+
+//         if (!isPasswordValid) {
+//             return res.status(401).json({ message: 'Invalid email or password' });
+//         }
+
+
+
+//         // Store user information in the session
+//         req.session.user = {
+//             userId: user._id,
+//             email: user.email,
+//             username:user.username,
+//             // Add other user information to the session if needed
+//         };
+
+//         console.log(req.session.user);
+
+
+//         // Return a success message
+//         res.status(200).json({
+//             message: 'Login successful',
+//             user: {
+//                 userId: user._id,
+//                 email: user.email,
+//                 // Add other user information you want to send to the client
+//             }
+//         });
+
+//     } catch (error) {
+//         console.error('Error logging in:', error);
+//         res.status(500).json({ message: 'Internal server error' });
+//     }
+// });
+
+
+
+
+// jwt login route
+
 router.post('/login', async (req, res) => {
     const { email, password } = req.body;
 
+    // Validate email and password
+    if (!email || !password) {
+        return res.status(400).json({ error: 'Please provide email and password' });
+    }
+
     try {
-        // Check if the user with the provided email exists
+        // Find user by email
         const user = await User.findOne({ email });
-
         if (!user) {
-            return res.status(401).json({ message: 'Invalid email or password' });
+            return res.status(401).json({ error: 'Invalid email or password' });
         }
 
-        // Compare the provided password with the hashed password stored in the database
-        const isPasswordValid = await bcrypt.compare(password, user.password);
-
-        if (!isPasswordValid) {
-            return res.status(401).json({ message: 'Invalid email or password' });
+        // Compare passwords
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(401).json({ error: 'Invalid email or password' });
         }
 
+        // Create JWT payload (replace with your user information)
+        const payload = {
+            userId: user._id, email: user.email,
+            username: user.username,
+        }; // Replace with relevant user data
 
+        // Sign JWT token with secret
+        const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
 
-        // Store user information in the session
-        req.session.user = {
-            userId: user._id,
-            email: user.email,
-            username:user.username,
-            // Add other user information to the session if needed
-        };
-
-        console.log(req.session.user);
-
-
-        // Return a success message
-        res.status(200).json({
-            message: 'Login successful',
-            user: {
-                userId: user._id,
-                email: user.email,
-                // Add other user information you want to send to the client
-            }
-        });
-
+        // Send response with token
+        res.json({ token, message: 'Login successful' });
     } catch (error) {
-        console.error('Error logging in:', error);
-        res.status(500).json({ message: 'Internal server error' });
+        console.error(error);
+        res.status(500).json({ error: 'Server error' });
     }
 });
 
@@ -128,6 +173,7 @@ router.post('/login', async (req, res) => {
 // Oluwaseun@gmail.com
 // Oluwaseun
 
+// Normall dashboard
 
 router.get('/dashboard', (req, res) => {
     if (req.session.user) {
@@ -139,29 +185,162 @@ router.get('/dashboard', (req, res) => {
     }
 });
 
+// Express session dashboard
+
+// router.get('/checkToken', (req, res) => {
+//     const authHeader = req.headers.authorization;
+
+//     // Check if authorization header is present and formatted correctly
+//     if (!authHeader || !authHeader.startsWith('Bearer ')) {
+//         return res.status(401).json({ valid: false, message: 'not authorized' });
+//     }
+
+//     const token = authHeader.split(' ')[1]; // Extract token from Bearer header
+
+//     // Verify the JWT token
+//     try {
+//         jwt.verify(token, process.env.JWT_SECRET);
+//         // Token is valid, send success response
+//         return res.json({ valid: true });
+//     } catch (error) {
+//         console.error('Error verifying JWT token:', error);
+//         // Token is invalid, send error response with valid JSON structure
+//         return res.status(401).json({ valid: false, message: 'Invalid token' });
+//     }
+// });
 
 
-function isAuthenticated(req, res, next) {
-    if (!req.session.user) {
-        return res.status(401).json({ message: 'fake' });
+router.get('/check-Token', (req, res) => {
+    const authHeader = req.headers.authorization;
+
+    // Validate authorization header format
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ valid: false, message: 'Invalid authorization header' });
     }
-    next();
-}
+
+    const token = authHeader.split(' ')[1]; // Extract token from Bearer header
+
+    try {
+        // Verify the token using JWT
+        const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+
+        // Check if token expiration is in the future (not expired)
+        const now = Date.now() / 1000; // Convert milliseconds to seconds
+        if (decodedToken.exp < now) {
+            console.error('Token expired');
+            console.log("this token is expired");
+            return res.status(401).json({ valid: false, message: 'Token expired' }); // Return error for expired token
+        }
+
+        // Access user information from the decoded payload
+        const userId = decodedToken.userId;
+        const email = decodedToken.email;
+        const username = decodedToken.username;
+
+        // Optional: You can construct a new payload here if needed
+        // const payload = { userId, email }; // Example of new payload
+
+        // Send response with valid status (e.g., include user information)
+        console.log(decodedToken.username);
+        return res.json({ valid: true, user: { userId, email, username } }); // Example response
+    } catch (error) {
+        console.error('Error verifying JWT token:', error);
+        // Token is invalid or other errors
+        return res.status(401).json({ valid: false, message: 'Invalid token' }); // Return error for invalid token
+    }
+});
+
+
+
+
+// function isAuthenticated(req, res, next) {
+//     if (!req.session.user) {
+//         return res.status(401).json({ message: 'fake' });
+//     }
+//     next();
+// }
+
+// JWT Authentication Middleware
+
+
+// const isAuthenticated = (req, res, next) => {
+//     const authHeader = req.headers.authorization;
+
+
+//     // Check if authorization header is present and formatted correctly
+//     if (!authHeader || !authHeader.startsWith('Bearer ')) {
+//         return res.status(401).json({ valid: false, message: 'Unauthorized' });
+//     }
+
+
+//     // Verify the JWT token
+//     try {
+//         const authHeader = req.headers.authorization;
+//         const token = authHeader.split(' ')[1]; // Extract token from Bearer header
+
+//         next();
+//     } catch (error) {
+//         console.error('Error verifying JWT token:', error);
+//         return res.status(401).json({ message: 'Invalid token' });
+//     }
+// };
+
+const isAuthenticated = (req, res, next) => {
+    const authHeader = req.headers.authorization;
+
+    // Validate authorization header format
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ valid: false, message: 'Unauthorized' });
+    }
+
+    const token = authHeader.split(' ')[1]; // Extract token from Bearer header
+
+    try {
+        // Verify the token using JWT
+        const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+
+        // Check for token expiration
+        const now = Date.now() / 1000; // Convert milliseconds to seconds
+        if (decodedToken.exp < now) {
+            return res.status(401).json({ valid: false, message: 'Token expired' });
+        }
+
+        // Attach decoded user information to the request object
+        req.user = decodedToken;
+        next(); // Proceed to the next middleware or route handler
+    } catch (error) {
+        console.error('Error verifying JWT token:', error);
+        return res.status(401).json({ message: 'Invalid token' });
+    }
+};
+
+
 
 
 
 
 
 router.post('/api/todos', isAuthenticated, async (req, res) => {
+
+
     try {
-        const userId = req.session.user.userId; // Get user ID from session
+
+        const authHeader = req.headers.authorization;
+        const token = authHeader.split(' ')[1]; // Extract token from Bearer header
+
+        const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+
+        // Access user information from the decoded payload
+        const userId = decodedToken.userId; // Assuming userId was included in the payload
+        const username = decodedToken.username; // Assuming userId was included in the payload
 
         const newTask = new Task({
             task: req.body.task,  // Assuming task data is sent in the request body
             description: req.body.description || '', // Optional description (default empty string)
             IsDone: false,  // New task starts as not done
             dueDate: req.body.dueDate || null,  // Optional due date (default null)
-            user: userId
+            user: userId,
+            usersname: username,
         });
 
 
@@ -182,10 +361,16 @@ router.post('/api/todos', isAuthenticated, async (req, res) => {
 
 router.get('/api/todos', isAuthenticated, async (req, res) => {
     try {
-        const userId = req.session.user.userId; // Get user ID from session
+        const authHeader = req.headers.authorization;
+        const token = authHeader.split(' ')[1]; // Extract token from Bearer header
+
+        const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+        const userId = decodedToken.userId; // Assuming userId was included in the payload
 
         const tasks = await Task.find({ user: userId });
-        res.json({ message: 'Retrieved user todos', todos: tasks });
+        console.log(tasks)
+        return res.json({ valid: true, message: 'Retrieved user todos', Tasks: tasks });
+
 
     } catch (error) {
         console.error('Error retrieving tasks:', error);
@@ -202,7 +387,10 @@ router.get('/:taskId', isAuthenticated, async (req, res) => {
         if (!task) {
             return res.status(404).json({ error: 'Task not found' });
         }
-        res.json(task);
+        console.log(task)
+        return res.json({ valid: true, task }); // Example response
+
+        // res.json(valid: true, task);
     } catch (error) {
         console.error('Error fetching task:', error);
         res.status(500).json({ error: 'Failed to fetch task' });
@@ -212,7 +400,7 @@ router.get('/:taskId', isAuthenticated, async (req, res) => {
 
 // Updating task
 
-router.put('/:taskId', async (req, res) => {
+router.put('/:taskId', isAuthenticated, async (req, res) => {
     try {
         // Extract task details from the request body
         const { task, description, IsDone, dueDate } = req.body;
@@ -251,8 +439,35 @@ router.put('/:taskId', async (req, res) => {
 
 router.delete('/todos/:taskId', isAuthenticated, async (req, res) => {
     try {
+
+
+
+
+
+        const authHeader = req.headers.authorization;
+        const token = authHeader.split(' ')[1]; // Extract token from Bearer header
+
+        const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+        const userId = decodedToken.userId; // Assuming userId was included in the payload
+
+        const tasks = await Task.find({ user: userId });
+
+
+
+
+
+
+
+
+
+
+
+
+
         // Extract the task ID from the request parameters
         const taskId = req.params.taskId;
+
+
 
         // Use Mongoose to find the task by its ID and delete it
         const deletedTask = await Task.findByIdAndDelete(taskId);
